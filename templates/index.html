@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ data.title }}</title>
+  </head>
+  <body>
+    <h1>Hi, {{ data.user }}</h1>
+
+    {% if data.admin %}
+    <p>오류 제발 멈춰줘</p>
+    {% else %}
+    <p>백엔드 13기, 조교님, 매니저님, 강사님 고생이 많습니다.</p>
+    {% endif %}
+
+    <ul>
+      {% for item in data.item_list %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
