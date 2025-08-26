@@ -1,0 +1,93 @@
+a. 패키지 설치
+poetry add "tortoise-orm[asyncmy]==0.23.0" poetry add cryptography==44.0.0 poetry add aerich==0.8.1 tomlkit==0.13.2 poetry add pydantic_settings==2.7.1 poetry add httpx==0.28.1
+1. poetry add "tortoise-orm[asyncmy]==0.23.0"
+-> poetry로 tortoise-orm 라이브러리 설치 
+-> ==0.23.0 버전을 고정해서 설치
+->[]옵션: asyncmy 라는 mysql용 드라이버를 같이 설치 
+
+2. poetry add cryptography==44.0.0
+->cryptograhy 라이브러리 설치
+->버전 44.0.0으로 고정
+->암호화/복호화, 인증서 처리, 해시 등 보안 관련 기능을 제공
+
+3. poetry add aerich==0.8.1 tomlkit==0.13.2
+-> aerich==0.8.1: Tortoise ORM용 마이그레이션 도구 (데이터베이스 스키마 버전 관리)
+->tomlkit==0.13.2: pyproject.toml 같은 설정 파일(TOML 형식)을 다룰 때 사용하는 라이브러리
+
+4. poetry add pydantic_settings==2.7.1
+->pydantic_settings 설치 (버전 2.7.1)
+->환경변수(.env)나 설정값을 Pydantic 모델로 불러올 수 있게 해주는 도구
+->예: DB 주소, API 키 같은 환경변수를 타입 안전하게 관리 가능
+
+5.poetry add httpx==0.28.1
+->httpx 설치 (버전 0.28.1)
+->Python용 비동기/동기 HTTP 클라이언트
+->예: API 요청 보내기 (requests와 비슷하지만 asyncio 지원)
+
+##아무래도 내가 설치하는게 뭔지는 알아야할 것 같아서 남깁니다.
+
+b. 1. MySQL 환경 설정(도커 사용)
+-> 도커 설치: 컨테이너 기반으로 독립적인 MySQL 환경을 구축
+-> MySQL 컨테이너 실행: lsof -i:3306 명령어로 3306 포트의 사용 여부를 확인후, 다음 명령어를 실행하여 MySQL 8 버전의 컨테이너를 실행
+-> docker run --name mydb -e MYSQL_ROOT_PASSWORD=1234 -d -p 3306:3306 mysql:8
+-> e: root 계정의 비밀번호를 1234로 설정
+-> d: 백그라운드에서 컨테이너를 실행
+-> p: 호스트(컴퓨터)의 3306 포트와 컨테이너 내부의 3306 포트를 연결
+
+->데이터베이스 생성: MySQL에 접속하여 CREATE DATABASE FastAPIProject; 명령어로 FastAPI 프로젝트가 사용할 데이터베이스를 생성
+
+-> pycharm으로 데이터 베이스 연결
+        Docker desktop이나 orb stack 에서 데이터베이스가 켜진것을 확인했다면 SELECT VERSION(); 으로 연결 / 후 major가 8로 시작한다면 성공
+
+c. Tortoise-ORM
+파이썬 객체와 데이터베이스 테이블을 매핑해주는 비동기 라이브러리
+
+주요역할
+-> 모델 선언: BaseModel을 상속받는 클래스를 정의하여 데이터베이스의 테이블을 파이썬 코드로 표현함
+-> CRUD 연산: QL쿼리를 직접 작성하지 않고, 파이썬 객체의 매서드를 사용하여 데이터 생성, 조회, 수정, 삭제를 할 수 있다.
+-> 비동기 지원: 비동기 프레임원크와 완벽하게 통합되도록 설계되어 있어서 데이터 베이스 작업시 블로킹없이 효율적 처리 가능
+
+d. Aerich
+ORM의 데이터베이스 마이그레이션 도구
+
+ 스키마 버전 관리 : 개발 과정에서 테이블 수정, 삭제, 추가 할때마다 내역을 코드로 기록
+-> aerich init: 마이그레이션 시스템 처음으로 초기화
+-> aerich migrate: 모델의 변경 사항을 감지하여 새로운 마이그레이션 파일 생성
+-> aerich upgrade: 생성된 마이그레이션 파일을 데이터베이스에 적용하여 실제 스키마를 업데이트
+-> aerich downgrade: 이전 적용했던 마이그레이션을 롤백(취소)하는 기능
+
+특징
+
+자동 변경 감지 aerich migrate명령어를 실행하면 변경사항을 자동으로 감지하여 SQL 스크립트를 생성
+안전한 스키마 변경가능 -> 여러 개발자가 협업ㅂ할때나 프로더션 환경에 배포할때 안전하고 일관된 데이터베이스 스키마 유지 가능
+
+e. 테스트 환경 조성
+목표: FastAPI 애플리케이션을 비동기적으로 테스트하고, 데이터베이스와 연동된 안정적인 테스트 환경 구축
+
+필요 라이브러리
+  httpx: 비동기 테스트용 HTTP 클라이언트. FastAPI의 테스트 클라이언트가 httpx 기반이므로 필수
+  pytest: 파이썬 대표적인 테스트 프레임워크
+  pytest-asyncio: pytest에서 async def 테스트 함수를 실행할 수 있도록 지원  
+  테스트 설정 파일 (conftest.py)
+  pytest 실행 시 자동으로 불러오는 설정 파일
+  공통된 설정(테스트 클라이언트, DB 연결, 초기화 코드 등)을 모아 관리 가능
+  각 테스트 코드가 독립적으로 동작할 수 있도록 환경 초기화
+
+테스트 설정 파일 (conftest.py)
+  pytest 실행 시 자동으로 불러오는 설정 파일
+  공통된 설정(테스트 클라이언트, DB 연결, 초기화 코드 등)을 모아 관리 가능
+  각 테스트 코드가 독립적으로 동작할 수 있도록 환경 초기화
+
+f. CI(지속적 통합)
+  목표: GitHub Actions/GitLab CI 등 CI 환경에서 DB 연결 오류 없이 안정적으로 테스트 수행
+
+  문제점 CI/CD는 항상 클린 환경에서 실행됨 → DB 서버가 없어 연결 시 에러 발생
+  
+해결
+  CI 스크립트에 MySQL 실행 추가
+  GitGub Actions 같은 워크플로우 파일에서 MySQL을 설치, 실행해서 테스트 때 임시  DB 사용
+
+  환경 변수 활용
+.env에 있는 DB정보는 직접 올리지 않고 
+CI/CD의 **sECRET(비밀 변수)**에 등록 -> 워크플로우에서 불러와 DB 연결에 사용
+EX) mYSQL_PASSWORD 같은 변수
